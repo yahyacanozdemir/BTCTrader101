@@ -11,12 +11,11 @@ class CryptoDetailCoordinator: BaseCoordinator {
   
   func start(_ cryptoDetail: Pair) {
     
-    ///Parametrik yapılabilir
     let graphSericeParams = CryptoGraphParameters(
       symbol: cryptoDetail.pair ?? "",
-      resolution: 60,
-      from: 1602925320,
-      to: 1603152000)
+      resolution: 60, ///Parametrik yapılabilir
+      from: 1602925320,  ///Parametrik yapılabilir
+      to: 1603152000)  ///Parametrik yapılabilir
       
     let useCase = CryptoDetailUseCase(
       repository: CryptoDetailRepository(service: CryptoGraphService()),

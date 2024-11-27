@@ -10,11 +10,13 @@ import UIKit
 class FavoriteCell: BaseCollectionViewCell {
   
   // MARK: - Properties
+  
   var cellData: Pair? {
     didSet { updateUI() }
   }
   
-  // UI Elements
+  // MARK: - UI Components
+  
   private lazy var nameLabel = createLabel(font: .boldSystemFont(ofSize: 14), textColor: .btcTurkWhite)
   private lazy var lastPriceLabel = createLabel(font: .boldSystemFont(ofSize: 14), textColor: .btcTurkWhite)
   private lazy var dailyPercentLabel = createLabel(font: .systemFont(ofSize: 14), textColor: .btcTurkRed)
@@ -55,6 +57,7 @@ class FavoriteCell: BaseCollectionViewCell {
   }
   
   // MARK: - Helper Methods
+  
   override func preferredLayoutAttributesFitting(_ layoutAttributes: UICollectionViewLayoutAttributes)
   -> UICollectionViewLayoutAttributes
   {

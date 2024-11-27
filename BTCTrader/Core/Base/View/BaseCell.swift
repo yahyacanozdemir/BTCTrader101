@@ -9,23 +9,20 @@ import UIKit
 
 // MARK: - BaseCollectionViewCell
 
-class BaseCollectionViewCell: UICollectionViewCell, BindableLayout {
+class BaseCollectionViewCell: UICollectionViewCell {
 
-  // MARK: Lifecycle
+  // MARK: - Initialization
 
   override init(frame: CGRect) {
     super.init(frame: frame)
     setupUI()
-    bind()
   }
 
   required init?(coder _: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-
-  // MARK: Internal
-
-  func bind() { }
+  
+  // MARK: - Layout
 
   final func setupUI() {
     setupSubviews()
@@ -39,23 +36,20 @@ class BaseCollectionViewCell: UICollectionViewCell, BindableLayout {
   func updateUI() { }
 }
 
-class BaseTableViewCell: UITableViewCell, BindableLayout {
+class BaseTableViewCell: UITableViewCell {
 
-  // MARK: Lifecycle
-  
+  // MARK: - Initialization
+
   override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
     super.init(style: style, reuseIdentifier: reuseIdentifier)
     setupUI()
-    bind()
   }
 
   required init?(coder _: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
 
-  // MARK: Internal
-
-  func bind() { }
+  // MARK: - Layout
 
   final func setupUI() {
     setupSubviews()

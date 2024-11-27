@@ -5,8 +5,6 @@
 //  Created by Yahya Can Özdemir on 26.11.2024.
 //
 
-import Foundation
-
 protocol CryptoDetailUseCaseProtocol {
   func execute(completion: @escaping (CryptoGraphResponseType) -> ())
 }

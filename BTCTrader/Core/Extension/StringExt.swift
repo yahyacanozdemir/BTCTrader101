@@ -5,7 +5,6 @@
 //  Created by Yahya Can Özdemir on 26.11.2024.
 //
 
-import CoreFoundation
 import UIKit
 
 extension String {

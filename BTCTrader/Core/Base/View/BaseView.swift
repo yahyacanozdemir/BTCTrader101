@@ -6,9 +6,10 @@
 //
 
 import UIKit
-import SnapKit
 
 class BaseView: UIView, BindableLayout {
+  
+  // MARK: - Initialization
   
   init() {
     super.init(frame: .zero)
@@ -19,8 +20,8 @@ class BaseView: UIView, BindableLayout {
   required init?(coder _: NSCoder) {
     fatalError("init(coder:) has not been implemented")
   }
-  
-  func bind() {}
+    
+  // MARK: - Lifecycle Methods
   
   func viewDidLoad() {}
 
@@ -42,10 +43,14 @@ class BaseView: UIView, BindableLayout {
   
   // MARK: - Layoutable
 
+  func bind() {}
+
   final func setupUI() {
     setupSubviews()
     setupConstraints()
   }
+  
+  // MARK: - Subview Setup & Constraints
 
   func setupSubviews() { }
 

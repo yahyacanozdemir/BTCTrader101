@@ -6,15 +6,9 @@
 //
 
 enum NetworkError: Error {
-  case invalidUrl
   case requestFailed(Error)
-  case invalidData
-  case network
-  case timeout
   case parse(Error)
   case unknown
-
-  // MARK: Internal
 
   var message: String {
     switch self {

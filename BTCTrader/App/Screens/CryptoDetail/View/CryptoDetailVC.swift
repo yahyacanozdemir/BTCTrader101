@@ -13,7 +13,7 @@ class CryptoDetailVC: BaseVC<CryptoDetailContentView> {
   override func bind() {
     if let navBar = selectedNavBar as? AppNavBar {
       navBar.setTitle(title: pageTitle ?? "")
-
+      
       navBar.onTapBack = { [weak self] in
         self?.coordinator?.pop()
       }

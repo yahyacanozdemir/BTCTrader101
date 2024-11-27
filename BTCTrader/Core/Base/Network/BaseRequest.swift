@@ -9,8 +9,6 @@ import Alamofire
 
 struct BaseRequest {
 
-  // MARK: Lifecycle
-
   init(
     endpoint: Endpoint,
     method: HTTPMethod = .get,
@@ -24,8 +22,6 @@ struct BaseRequest {
     self.parameterType = parameterType
     self.contentType = contentType
   }
-
-  // MARK: Internal
 
   var endpoint: Endpoint
   var method: HTTPMethod

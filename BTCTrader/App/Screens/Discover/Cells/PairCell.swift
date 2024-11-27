@@ -10,13 +10,15 @@ import UIKit
 class PairCell: BaseTableViewCell {
   
   // MARK: - Properties
+  
   var cellData: Pair? {
     didSet { updateUI() }
   }
   
   var favoriteButtonAction: (() -> Void)?
   
-  // UI Elements
+  // MARK: - UI Components
+  
   private lazy var favoriteButton: UIButton = {
     let button = UIButton()
     button.setImage(UIImage(systemName: "star"), for: .normal)
@@ -40,6 +42,7 @@ class PairCell: BaseTableViewCell {
   }()
   
   // MARK: - Layout
+  
   override func setupSubviews() {
     selectionStyle = .none
     backgroundColor = .clear
@@ -112,11 +115,13 @@ class PairCell: BaseTableViewCell {
   }
   
   // MARK: - Action Methods
+  
   @objc private func favoriteButtonTapped() {
     favoriteButtonAction?()
   }
   
   // MARK: - Helper Methods
+  
   private func createLabel(font: UIFont, textColor: UIColor) -> UILabel {
     let label = UILabel()
     label.font = font

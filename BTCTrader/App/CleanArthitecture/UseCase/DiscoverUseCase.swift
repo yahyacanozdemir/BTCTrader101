@@ -5,8 +5,6 @@
 //  Created by Yahya Can Özdemir on 26.11.2024.
 //
 
-import Foundation
-
 protocol DiscoverUseCaseProtocol {
   func execute(completion: @escaping (DiscoverResponseType) -> ())
 }

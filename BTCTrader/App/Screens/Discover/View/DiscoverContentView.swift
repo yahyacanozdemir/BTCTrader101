@@ -44,7 +44,7 @@ class DiscoverContentView: BaseView {
           self?.changeFavoritesVisibility()
         case .loading(let isShow):
           self?.contentLoadingView.isHidden = !isShow
-        case .allCryptosUpdated:
+        case .pairsUpdated:
           self?.updateUI()
         case .showError(let message):
           print("Error: \(message)") // Handle error display
@@ -79,6 +79,14 @@ class DiscoverContentView: BaseView {
     return cv
   }()
   
+  private lazy var refreshControl: UIRefreshControl = {
+    let refreshControl = UIRefreshControl()
+    refreshControl.tintColor = .btcTurkWhite
+    refreshControl
+      .addTarget(self, action: #selector(refreshPairs), for: .valueChanged)
+    return refreshControl
+  }()
+  
   private lazy var pairsTableView: UITableView = {
     let tableView = UITableView()
     tableView.register(with: PairCell.self)
@@ -100,6 +108,7 @@ class DiscoverContentView: BaseView {
   // MARK: - Layout
   
   override func setupSubviews() {
+    pairsTableView.addSubview(refreshControl)
     [favoritesCVTitleLabel, favoritesCollectionView, pairsTableView, contentLoadingView].forEach { addSubview($0) }
   }
   
@@ -130,9 +139,15 @@ class DiscoverContentView: BaseView {
   
   override func updateUI() {
     DispatchQueue.main.async {
+      self.refreshControl.endRefreshing()
       self.favoritesCollectionView.reloadData()
       self.pairsTableView.reloadData()
     }
+  }
+  
+  @objc
+  func refreshPairs() {
+    viewModel.fetchPairs(withContentLoading: false)
   }
   
   private func changeFavoritesVisibility() {

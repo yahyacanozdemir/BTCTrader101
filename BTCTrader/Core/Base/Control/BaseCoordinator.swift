@@ -19,16 +19,12 @@ public protocol Coordinator: AnyObject {
 
 class BaseCoordinator: NSObject, Coordinator {
   
-  // MARK: Lifecycle
-  
+  var navigationController: BaseNavigationController
+    
   init(navigationController: BaseNavigationController) {
     self.navigationController = navigationController
   }
-  
-  // MARK: Internal
-  
-  var navigationController: BaseNavigationController
-  
+    
   func start(navigationType _: NavigationType = .push) { }
   
   func navigateTo(_ viewController: UIViewController, animated: Bool = true, navigationType: NavigationType = .push) {

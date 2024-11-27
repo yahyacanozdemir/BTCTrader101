@@ -5,17 +5,16 @@
 //  Created by Yahya Can Özdemir on 26.11.2024.
 //
 
-import Foundation
 import UIKit
 
 final class DiscoverViewModel: BaseViewModel {
   
   // MARK: - Enums
   
-  enum DiscoverEventType {
+  enum DiscoverEventType: Equatable {
     case favoritesUpdated
     case loading(Bool)
-    case allCryptosUpdated
+    case pairsUpdated
     case showError(String)
   }
   
@@ -37,11 +36,12 @@ final class DiscoverViewModel: BaseViewModel {
   // MARK: - Public Methods
   
   func start() {
-    fetchPairs()
+    fetchPairs(withContentLoading: true)
   }
   
-  func fetchPairs() {
-    eventTrigger?(.loading(true))
+  func fetchPairs(withContentLoading: Bool) {
+    withContentLoading ? eventTrigger?(.loading(true)) : ()
+    
     useCase.execute { [weak self] result in
       guard let self = self else { return }
       switch result {
@@ -50,7 +50,7 @@ final class DiscoverViewModel: BaseViewModel {
         self.allCryptos = pairItems
         self.loadFavorites()
       case .fetchPairsFail(let errorMsg):
-        self.eventTrigger?(.loading(false))
+        withContentLoading ? eventTrigger?(.loading(false)) : ()
         self.eventTrigger?(.showError(errorMsg ?? "Veri çekilirken hata meydana geldi"))
       }
     }
@@ -72,6 +72,14 @@ extension DiscoverViewModel {
     let width = max(nameWidth, dailyPercentWidth)
     return CGSize(width: width + 24, height: 80)
   }
+  
+  private func allCryptosUpdated() {
+    eventTrigger?(.favoritesUpdated)
+    
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+      self.eventTrigger?(.pairsUpdated)
+    }
+  }
 }
 
 // MARK: - Favorite Logic
@@ -89,10 +97,7 @@ extension DiscoverViewModel {
     allCryptos[indexPath.item].isFavorite = !(pair.isFavorite ?? false)
     saveFavoritesToLocal(favoriteCryptos.map { $0.pair ?? "" })
     
-    eventTrigger?(.favoritesUpdated)
-    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-      self.eventTrigger?(.allCryptosUpdated)
-    }
+    self.allCryptosUpdated()
   }
   
   private func loadFavorites() {
@@ -110,12 +115,10 @@ extension DiscoverViewModel {
       DispatchQueue.main.async {
         self.favoriteCryptos = newFavorites
         self.eventTrigger?(.loading(false))
-        self.eventTrigger?(.favoritesUpdated)
-        self.eventTrigger?(.allCryptosUpdated)
+        self.allCryptosUpdated()
       }
     }
   }
-
   
   private func saveFavoritesToLocal(_ pairs: [String]) {
     UserDefaults.standard.set(pairs, forKey: "favoritePairs")
@@ -123,5 +126,13 @@ extension DiscoverViewModel {
   
   private func loadFavoritesFromLocal() -> [String] {
     UserDefaults.standard.stringArray(forKey: "favoritePairs") ?? []
+  }
+}
+
+
+//MARK: FOR TESTING
+extension DiscoverViewModel {
+  func setAllCryptos(_ cryptos: [Pair]) {
+    self.allCryptos = cryptos
   }
 }

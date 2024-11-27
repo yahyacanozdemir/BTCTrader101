@@ -6,7 +6,6 @@
 //
 
 import UIKit
-import Charts
 import DGCharts
 
 class CryptoDetailContentView: BaseView {
@@ -56,7 +55,7 @@ class CryptoDetailContentView: BaseView {
       }
     }
   }
-  // MARK: - Setup Subviews
+  // MARK: - Layout
   
   override func setupSubviews() {
     backgroundColor = .btcTurkDark
@@ -65,9 +64,7 @@ class CryptoDetailContentView: BaseView {
     
     setupChartView()
   }
-  
-  // MARK: - Setup Constraints
-  
+    
   override func setupConstraints() {
     lineChartView.snp.makeConstraints { make in
       make.top.equalToSuperview().offset(36)
@@ -79,10 +76,29 @@ class CryptoDetailContentView: BaseView {
     }
   }
   
+  func updateConstraintsHorizontalLayout(_ size: CGSize) {
+    lineChartView.snp.updateConstraints { make in
+      if size.width > size.height {
+        make.top.equalToSuperview().offset(36)
+        make.horizontalEdges.equalToSuperview().inset(36)
+        make.height.equalTo(148)
+      } else {
+        make.top.equalToSuperview().offset(36)
+        make.horizontalEdges.equalToSuperview().inset(8)
+        make.height.equalTo(148)
+      }
+    }
+    
+    contentLoadingView.snp.updateConstraints { make in
+      make.edges.equalTo(lineChartView)
+    }
+  }
+    
   // MARK: - Chart Setup
   
   private func setupChartView() {
     lineChartView.backgroundColor = .btcTurkDarkBlue.withAlphaComponent(0.15)
+    lineChartView.noDataTextColor = .btcTurkWhite
     lineChartView.noDataText = "Veri bulunamadı."
     lineChartView.legend.enabled = false
     lineChartView.leftAxis.enabled = false
