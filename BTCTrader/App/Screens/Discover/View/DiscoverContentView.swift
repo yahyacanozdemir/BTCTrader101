@@ -91,6 +91,7 @@ class DiscoverContentView: BaseView {
     let tableView = UITableView()
     tableView.register(with: PairCell.self)
     tableView.contentInsetAdjustmentBehavior = .never
+    tableView.separatorColor = .clear
     tableView.backgroundColor = .clear
     tableView.delegate = self
     tableView.dataSource = self

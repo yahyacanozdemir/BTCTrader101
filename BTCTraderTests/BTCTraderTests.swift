@@ -11,7 +11,6 @@ import XCTest
 final class BTCTraderTests: XCTestCase {
   
   private var mockService: MockDiscoverService!
-  private var useCase: DiscoverUseCase!
   private var viewModel: DiscoverViewModel!
   private var events: [DiscoverViewModel.DiscoverEventType] = []
   
