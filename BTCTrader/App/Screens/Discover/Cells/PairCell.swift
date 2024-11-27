@@ -43,6 +43,11 @@ class PairCell: BaseTableViewCell {
   
   // MARK: - Layout
   
+  override func prepareForReuse() {
+    super.prepareForReuse()
+    bottomLine.isHidden = false
+  }
+  
   override func setupSubviews() {
     selectionStyle = .none
     backgroundColor = .clear
