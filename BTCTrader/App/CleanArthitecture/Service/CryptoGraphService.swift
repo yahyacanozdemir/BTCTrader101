@@ -38,7 +38,7 @@ struct CryptoGraphService: CryptoGraphServiceProtoocol {
 }
 
 struct CryptoGraphParameters {
-  let symbol: String
-  let resolution, from, to: Int
+  var symbol: String
+  var resolution, from, to: Int
 }
 

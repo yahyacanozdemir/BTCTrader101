@@ -18,4 +18,15 @@ extension String {
     ).size
     return size.width
   }
+  
+  func formatPair() -> String {
+    if self.hasSuffix("USDT") {
+      let baseCurrency = self.dropLast(4)
+      return baseCurrency + "/USDT"
+    } else if self.hasSuffix("TRY") {
+      let baseCurrency = self.dropLast(3)
+      return baseCurrency + "/TRY"
+    }
+    return self
+  }
 }

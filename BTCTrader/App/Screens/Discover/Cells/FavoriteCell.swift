@@ -1,15 +1,10 @@
-//
-//  FavoriteCell.swift
-//  BTCTrader
-//
-//  Created by Yahya Can Özdemir on 26.11.2024.
-//
-
 import UIKit
 
 class FavoriteCell: BaseCollectionViewCell {
   
   // MARK: - Properties
+  
+  var favoriteButtonAction: (() -> Void)?
   
   var cellData: Pair? {
     didSet { updateUI() }
@@ -20,11 +15,19 @@ class FavoriteCell: BaseCollectionViewCell {
   private lazy var nameLabel = createLabel(font: .boldSystemFont(ofSize: 14), textColor: .btcTurkWhite)
   private lazy var lastPriceLabel = createLabel(font: .boldSystemFont(ofSize: 14), textColor: .btcTurkWhite)
   private lazy var dailyPercentLabel = createLabel(font: .systemFont(ofSize: 14), textColor: .btcTurkRed)
+  private lazy var controller: UIContextMenuInteraction = {
+    let controller = UIContextMenuInteraction(delegate: self)
+    return controller
+  }()
   
   // MARK: - Layout
+  
   override func setupSubviews() {
     contentView.backgroundColor = .btcTurkDarkBlue
     contentView.layer.cornerRadius = 8
+    
+    let longPressGesture = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
+    self.addGestureRecognizer(longPressGesture)
     
     [nameLabel, lastPriceLabel, dailyPercentLabel].forEach {
       contentView.addSubview($0)
@@ -50,7 +53,7 @@ class FavoriteCell: BaseCollectionViewCell {
   
   override func updateUI() {
     guard let pair = cellData else { return }
-    nameLabel.text = pair.pair
+    nameLabel.text = pair.pair?.formatPair()
     lastPriceLabel.text = pair.last?.formattedString
     dailyPercentLabel.text = pair.dailyPercent?.dailyPercentFormattedString
     dailyPercentLabel.textColor = pair.dailyPercent?.color
@@ -74,5 +77,26 @@ class FavoriteCell: BaseCollectionViewCell {
     label.sizeToFit()
     return label
   }
+  
+  // MARK: - Long Press Gesture Action
+  
+  @objc func handleLongPress(gesture: UILongPressGestureRecognizer) {
+    if gesture.state == .began {
+      if let view = gesture.view {
+        view.addInteraction(controller)
+        view.becomeFirstResponder()
+      }
+    }
+  }
 }
 
+extension FavoriteCell: UIContextMenuInteractionDelegate {
+  func contextMenuInteraction(_ interaction: UIContextMenuInteraction, configurationForMenuAtLocation location: CGPoint) -> UIContextMenuConfiguration? {
+    return UIContextMenuConfiguration(identifier: nil, previewProvider: nil) { _ in
+      let removeAction = UIAction(title: "Remove from favorite", image: nil) { _ in
+        self.favoriteButtonAction?()
+      }
+      return UIMenu(title: "", children: [removeAction])
+    }
+  }
+}

@@ -24,8 +24,10 @@ final class DiscoverViewModel: BaseViewModel {
   
   var eventTrigger: ((EventType) -> Void)?
   private var useCase: DiscoverUseCase
+  
   private(set) var favoriteCryptos: [Pair] = []
   private(set) var allCryptos: [Pair] = []
+  private(set) var filteredCryptos: [Pair] = []
   
   // MARK: - Initialization
   
@@ -85,7 +87,8 @@ extension DiscoverViewModel {
 // MARK: - Favorite Logic
 
 extension DiscoverViewModel {
-  func toggleFavorite(pair: Pair, indexPath: IndexPath) {
+  
+  func toggleFavorite(pair: Pair) {
     if let index = favoriteCryptos.firstIndex(where: { $0.pair == pair.pair }) {
       favoriteCryptos.remove(at: index)
     } else {
@@ -94,7 +97,18 @@ extension DiscoverViewModel {
       favoriteCryptos.append(updatedPair)
     }
     
-    allCryptos[indexPath.item].isFavorite = !(pair.isFavorite ?? false)
+    if !allCryptos.isEmpty {
+      if let index = allCryptos.firstIndex(where: { $0.pair == pair.pair }) {
+        allCryptos[index].isFavorite = !(pair.isFavorite ?? false)
+      }
+    }
+    
+    if !filteredCryptos.isEmpty {
+      if let index = filteredCryptos.firstIndex(where: { $0.pair == pair.pair }) {
+        filteredCryptos[index].isFavorite = !(pair.isFavorite ?? false)
+      }
+    }
+    
     saveFavoritesToLocal(favoriteCryptos.map { $0.pair ?? "" })
     
     self.allCryptosUpdated()
@@ -110,7 +124,18 @@ extension DiscoverViewModel {
         return updatedPair
       }
       
-      let newFavorites = self.allCryptos.filter { $0.isFavorite == true }
+      var newFavorites = self.allCryptos.filter { $0.isFavorite == true }
+      
+      //New favorites sorting for possible re-positioning case
+      newFavorites.sort { pair1, pair2 in
+        guard let pair1String = pair1.pair,
+              let pair2String = pair2.pair,
+              let index1 = localFavoritePairs.firstIndex(of: pair1String),
+              let index2 = localFavoritePairs.firstIndex(of: pair2String) else {
+          return false
+        }
+        return index1 < index2
+      }
       
       DispatchQueue.main.async {
         self.favoriteCryptos = newFavorites
@@ -120,12 +145,61 @@ extension DiscoverViewModel {
     }
   }
   
+  func clearFavorites() {
+    allCryptos.forEach { pair in
+      if let index = allCryptos.firstIndex(where: { $0.pair == pair.pair }) {
+        allCryptos[index].isFavorite = false
+      }
+    }
+    
+    filteredCryptos.forEach { pair in
+      if let index = filteredCryptos.firstIndex(where: { $0.pair == pair.pair }) {
+        filteredCryptos[index].isFavorite = false
+      }
+    }
+    
+    favoriteCryptos = []
+    saveFavoritesToLocal([])
+    allCryptosUpdated()
+  }
+  
+  func repositionFavorites(sourceIndex: Int, destinationIndex: Int) {
+    let draggedPair = favoriteCryptos.remove(at: sourceIndex)
+    favoriteCryptos.insert(draggedPair, at: destinationIndex)
+  }
+  
+  func didRepositionFavorites() {
+    saveFavoritesToLocal([])
+    saveFavoritesToLocal(favoriteCryptos.map { $0.pair ?? "" })
+  }
+  
   private func saveFavoritesToLocal(_ pairs: [String]) {
     UserDefaults.standard.set(pairs, forKey: "favoritePairs")
   }
   
   private func loadFavoritesFromLocal() -> [String] {
     UserDefaults.standard.stringArray(forKey: "favoritePairs") ?? []
+  }
+}
+
+//MARK: - Filter Logic
+
+extension DiscoverViewModel {
+  func filterPairs(with searchText: String) {
+    guard !searchText.isEmpty else {
+      filteredCryptos = []
+      eventTrigger?(.pairsUpdated)
+      return
+    }
+    
+    filteredCryptos = allCryptos.filter {
+      $0.pair?.lowercased().contains(searchText.lowercased()) ?? false
+    }
+    eventTrigger?(.pairsUpdated)
+  }
+  
+  func returnShowingPairsData() -> [Pair] {
+    return filteredCryptos.isEmpty ? (allCryptos.isEmpty ? [] : allCryptos) : filteredCryptos
   }
 }
 

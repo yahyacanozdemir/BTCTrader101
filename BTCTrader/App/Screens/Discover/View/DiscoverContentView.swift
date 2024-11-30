@@ -55,13 +55,13 @@ class DiscoverContentView: BaseView {
   
   // MARK: - UI Components
   
-  private lazy var favoritesCVTitleLabel: UILabel = {
-    let label = UILabel()
-    label.text = "Favorites"
-    label.font = .boldSystemFont(ofSize: 28)
-    label.textColor = .btcTurkWhite
-    label.isHidden = true
-    return label
+  private lazy var favoritesCVTitleView: TitleAndButtonHeader = {
+    let view = TitleAndButtonHeader(title: "Favorites", buttonTitle: "Clear")
+    view.isHidden = true
+    view.buttonTapHandler = { [weak self] in
+      self?.viewModel.clearFavorites()
+    }
+    return view
   }()
   
   private lazy var favoritesCollectionView: UICollectionView = {
@@ -72,6 +72,8 @@ class DiscoverContentView: BaseView {
     let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
     cv.register(with: FavoriteCell.self)
     cv.showsHorizontalScrollIndicator = false
+    cv.dragDelegate = self
+    cv.dropDelegate = self
     cv.backgroundColor = .clear
     cv.delegate = self
     cv.dataSource = self
@@ -79,12 +81,12 @@ class DiscoverContentView: BaseView {
     return cv
   }()
   
-  private lazy var refreshControl: UIRefreshControl = {
-    let refreshControl = UIRefreshControl()
-    refreshControl.tintColor = .btcTurkWhite
-    refreshControl
-      .addTarget(self, action: #selector(refreshPairs), for: .valueChanged)
-    return refreshControl
+  private lazy var pairsCVTitleView: TitleAndSearchBarHeader = {
+    let headerView = TitleAndSearchBarHeader(title: "Pairs", searchBarPlaceHolder: "Search any pair")
+    headerView.searchBarUpdated = { [weak self] text in
+      self?.viewModel.filterPairs(with: text)
+    }
+    return headerView
   }()
   
   private lazy var pairsTableView: UITableView = {
@@ -99,6 +101,14 @@ class DiscoverContentView: BaseView {
     return tableView
   }()
   
+  private lazy var refreshControl: UIRefreshControl = {
+    let refreshControl = UIRefreshControl()
+    refreshControl.tintColor = .btcTurkWhite
+    refreshControl
+      .addTarget(self, action: #selector(refreshPairs), for: .valueChanged)
+    return refreshControl
+  }()
+  
   private lazy var contentLoadingView: UIActivityIndicatorView = {
     let indicator = UIActivityIndicatorView(style: .large)
     indicator.color = .btcTurkWhite
@@ -110,17 +120,17 @@ class DiscoverContentView: BaseView {
   
   override func setupSubviews() {
     pairsTableView.addSubview(refreshControl)
-    [favoritesCVTitleLabel, favoritesCollectionView, pairsTableView, contentLoadingView].forEach { addSubview($0) }
+    [favoritesCVTitleView, favoritesCollectionView, pairsTableView, contentLoadingView].forEach { addSubview($0) }
   }
   
   override func setupConstraints() {
-    favoritesCVTitleLabel.snp.makeConstraints { make in
+    favoritesCVTitleView.snp.makeConstraints { make in
       make.top.equalToSuperview().offset(16)
       make.horizontalEdges.equalToSuperview().inset(8)
     }
     
     favoritesCollectionView.snp.makeConstraints { make in
-      make.top.equalTo(favoritesCVTitleLabel.snp.bottom).offset(16)
+      make.top.equalTo(favoritesCVTitleView.snp.bottom).offset(16)
       make.horizontalEdges.equalToSuperview()
       make.bottom.equalTo(pairsTableView.snp.top).offset(-16)
       make.height.equalTo(80)
@@ -153,7 +163,7 @@ class DiscoverContentView: BaseView {
   
   private func changeFavoritesVisibility() {
     let isFavoritesEmpty = viewModel.favoriteCryptos.isEmpty
-    favoritesCVTitleLabel.isHidden = isFavoritesEmpty
+    favoritesCVTitleView.isHidden = isFavoritesEmpty
     favoritesCollectionView.isHidden = isFavoritesEmpty
     
     favoritesCollectionView.snp.updateConstraints { make in
@@ -176,14 +186,18 @@ class DiscoverContentView: BaseView {
 
 // MARK: - UICollectionViewDelegate, UICollectionViewDataSource
 
-extension DiscoverContentView: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout {
+extension DiscoverContentView: UICollectionViewDelegate, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDragDelegate, UICollectionViewDropDelegate {
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
     viewModel.favoriteCryptos.count
   }
   
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     let cell = collectionView.dequeueCell(withClassAndIdentifier: FavoriteCell.self, for: indexPath)
-    cell.cellData = viewModel.favoriteCryptos[indexPath.item]
+    let pair = viewModel.favoriteCryptos[indexPath.item]
+    cell.cellData = pair
+    cell.favoriteButtonAction = { [weak self] in
+      self?.viewModel.toggleFavorite(pair: pair)
+    }
     return cell
   }
   
@@ -194,26 +208,58 @@ extension DiscoverContentView: UICollectionViewDelegate, UICollectionViewDataSou
   func collectionView(_ collectionView: UICollectionView, layout _: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
     viewModel.calculateFavoriteCellWidth(indexPath: indexPath)
   }
+  
+  func collectionView(_ collectionView: UICollectionView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
+    let itemIdentifier = "\(indexPath.item)"
+    let itemProvider = NSItemProvider(object: itemIdentifier as NSString)
+    let dragItem = UIDragItem(itemProvider: itemProvider)
+    dragItem.localObject = indexPath.item
+    return [dragItem]
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, performDropWith coordinator: UICollectionViewDropCoordinator) {
+    guard let destinationIndexPath = coordinator.destinationIndexPath else { return }
+    
+    for item in coordinator.items {
+      if let sourceIndex = item.dragItem.localObject as? Int {
+        collectionView.performBatchUpdates({
+            viewModel.repositionFavorites(sourceIndex: sourceIndex, destinationIndex: destinationIndexPath.item)
+            
+            collectionView.deleteItems(at: [IndexPath(item: sourceIndex, section: 0)])
+            collectionView.insertItems(at: [destinationIndexPath])
+          })
+        coordinator.drop(item.dragItem, toItemAt: destinationIndexPath)
+        viewModel.didRepositionFavorites()
+      }
+    }
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, canHandle session: UIDropSession) -> Bool {
+    return session.localDragSession != nil
+  }
+  
+  func collectionView(_ collectionView: UICollectionView, dropSessionDidUpdate session: UIDropSession, withDestinationIndexPath destinationIndexPath: IndexPath?) -> UICollectionViewDropProposal {
+    return UICollectionViewDropProposal(operation: .move, intent: .insertAtDestinationIndexPath)
+  }
 }
 
 // MARK: - UITableViewDelegate, UITableViewDataSource
 
 extension DiscoverContentView: UITableViewDelegate, UITableViewDataSource {
   func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-    viewModel.allCryptos.count
+    viewModel.returnShowingPairsData().count
   }
   
   func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
     let cell = tableView.dequeueCell(withClassAndIdentifier: PairCell.self, for: indexPath)
-  
-    let pair = viewModel.allCryptos[indexPath.row]
+    let pair = viewModel.returnShowingPairsData()[indexPath.row]
     cell.cellData = pair
+    
     cell.favoriteButtonAction = { [weak self] in
-      self?.viewModel.toggleFavorite(pair: pair, indexPath: indexPath)
+      self?.viewModel.toggleFavorite(pair: pair)
     }
-    if viewModel.isLastPairCell(indexPath: indexPath) {
-      cell.bottomLine.isHidden = true
-    }
+    
+    cell.isLastCell = viewModel.isLastPairCell(indexPath: indexPath)
     return cell
   }
   
@@ -226,20 +272,7 @@ extension DiscoverContentView: UITableViewDelegate, UITableViewDataSource {
   }
   
   func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-    let headerView = UIView()
-    headerView.backgroundColor = .btcTurkDark
-    let titleLabel = UILabel()
-    titleLabel.text = "Pairs"
-    titleLabel.font = .boldSystemFont(ofSize: 28)
-    titleLabel.textColor = .btcTurkWhite
-    headerView.addSubview(titleLabel)
-    
-    titleLabel.snp.makeConstraints { make in
-      make.leading.top.equalToSuperview()
-      make.bottom.equalToSuperview()
-    }
-    
-    return headerView
+    return pairsCVTitleView
   }
   
   func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {

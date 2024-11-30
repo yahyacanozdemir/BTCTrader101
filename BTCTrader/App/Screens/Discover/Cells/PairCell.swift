@@ -11,6 +11,10 @@ class PairCell: BaseTableViewCell {
   
   // MARK: - Properties
   
+  var isLastCell: Bool? {
+    didSet { bottomLine.isHidden = isLastCell ?? false }
+  }
+  
   var cellData: Pair? {
     didSet { updateUI() }
   }
@@ -110,7 +114,7 @@ class PairCell: BaseTableViewCell {
     guard let pair = cellData else { return }
     
     favoriteButton.isSelected = pair.isFavorite ?? false
-    nameLabel.text = pair.pair
+    nameLabel.text = pair.pair?.formatPair()
     lastPriceLabel.text = pair.last?.formattedString
     dailyPercentLabel.text = pair.dailyPercent?.dailyPercentFormattedString
     volumeLabel.text = pair.volume?.formattedString

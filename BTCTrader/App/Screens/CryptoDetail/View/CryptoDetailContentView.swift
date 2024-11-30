@@ -26,6 +26,19 @@ class CryptoDetailContentView: BaseView {
   private let viewModel: CryptoDetailViewModel
   
   // MARK: - UI Components
+  
+  private lazy var segmentedControl: UISegmentedControl = {
+    let items = CryptoDetailViewModel.SegmentType.allCases.map { $0.rawValue }
+    let segmentedControl = UISegmentedControl(items: items)
+    segmentedControl.selectedSegmentIndex = 0
+    segmentedControl.backgroundColor = .btcTurkDark.withAlphaComponent(0.4)
+    segmentedControl.selectedSegmentTintColor = .graphBlue
+    segmentedControl.setTitleTextAttributes([.foregroundColor: UIColor.graphBlue],for: .normal)
+    segmentedControl.setTitleTextAttributes([.foregroundColor: UIColor.btcTurkWhite],for: .selected)
+    segmentedControl.addTarget(self, action: #selector(segmentChanged(_:)), for: .valueChanged)
+    return segmentedControl
+  }()
+  
   private lazy var lineChartView = LineChartView()
   private lazy var contentLoadingView: UIActivityIndicatorView = {
     let indicator = UIActivityIndicatorView(style: .large)
@@ -45,11 +58,13 @@ class CryptoDetailContentView: BaseView {
     viewModel.eventTrigger = { [weak self] type in
       switch type {
       case .loading(let isShow):
+        self?.lineChartView.isHidden = isShow
         self?.contentLoadingView.isHidden = !isShow
       case .graphUpdated(let graph):
         self?.setupChartData(graph)
       case .showError(_):
         self?.lineChartView.data = nil
+        self?.lineChartView.clear()
         self?.lineChartView.noDataText = "Veri alınamadı."
         break
       }
@@ -59,15 +74,21 @@ class CryptoDetailContentView: BaseView {
   
   override func setupSubviews() {
     backgroundColor = .btcTurkDark
+    addSubview(segmentedControl)
     addSubview(lineChartView)
     addSubview(contentLoadingView)
     
     setupChartView()
   }
-    
+  
   override func setupConstraints() {
-    lineChartView.snp.makeConstraints { make in
+    segmentedControl.snp.makeConstraints { make in
       make.top.equalToSuperview().offset(36)
+      make.horizontalEdges.equalToSuperview().inset(8)
+      make.height.equalTo(40)
+    }
+    lineChartView.snp.makeConstraints { make in
+      make.top.equalTo(segmentedControl.snp.bottom).offset(36)
       make.horizontalEdges.equalToSuperview().inset(8)
       make.height.equalTo(148)
     }
@@ -76,35 +97,26 @@ class CryptoDetailContentView: BaseView {
     }
   }
   
-  func updateConstraintsHorizontalLayout(_ size: CGSize) {
-    lineChartView.snp.updateConstraints { make in
-      if size.width > size.height {
-        make.top.equalToSuperview().offset(36)
-        make.horizontalEdges.equalToSuperview().inset(36)
-        make.height.equalTo(148)
-      } else {
-        make.top.equalToSuperview().offset(36)
-        make.horizontalEdges.equalToSuperview().inset(8)
-        make.height.equalTo(148)
-      }
-    }
-    
-    contentLoadingView.snp.updateConstraints { make in
-      make.edges.equalTo(lineChartView)
-    }
+  @objc private func segmentChanged(_ sender: UISegmentedControl) {
+    let segment = CryptoDetailViewModel.SegmentType.allCases[sender.selectedSegmentIndex]
+    viewModel.segmentChanged(item: segment)
   }
-    
+  
   // MARK: - Chart Setup
   
   private func setupChartView() {
     lineChartView.backgroundColor = .btcTurkDarkBlue.withAlphaComponent(0.15)
     lineChartView.noDataTextColor = .btcTurkWhite
-    lineChartView.noDataText = "Veri bulunamadı."
     lineChartView.legend.enabled = false
     lineChartView.leftAxis.enabled = false
     lineChartView.drawGridBackgroundEnabled = false
     
     setupChartAxes()
+    
+    let marker = ChartMarker(frame: CGRect(x: 0, y: 0, width: 80, height: 40))
+    marker.chartView = lineChartView
+    lineChartView.marker = marker
+    
     lineChartView.animate(xAxisDuration: 1.5)
   }
   
@@ -125,34 +137,16 @@ class CryptoDetailContentView: BaseView {
   
   private func setupChartData(_ graphDetail: CryptoGraphEntity?) {
     guard let close = graphDetail?.c, !close.isEmpty, let time = graphDetail?.t, !time.isEmpty else {
-      print("Veri bulunamadı!")
+      lineChartView.noDataText = "Veri bulunamadı."
       return
     }
     
-    let dataEntries = createDataEntries(xValues: time, yValues: close)
-    let lineDataSet = createLineDataSet(entries: dataEntries)
+    let dataEntries = viewModel.createDataEntries(xValues: time, yValues: close)
+    let lineDataSet = viewModel.createLineDataSet(entries: dataEntries)
+    configureGradientForLineDataSet(lineDataSet)
     
     let lineChartData = LineChartData(dataSet: lineDataSet)
     lineChartView.data = lineChartData
-  }
-  
-  private func createDataEntries(xValues: [Double], yValues: [Double]) -> [ChartDataEntry] {
-    return zip(xValues, yValues).map { x, y in
-      ChartDataEntry(x: x, y: y)
-    }
-  }
-  
-  private func createLineDataSet(entries: [ChartDataEntry]) -> LineChartDataSet {
-    let lineDataSet = LineChartDataSet(entries: entries, label: "")
-    lineDataSet.colors = [.graphBlue]
-    lineDataSet.valueColors = [.clear]
-    lineDataSet.drawCirclesEnabled = false
-    lineDataSet.lineWidth = 2
-    lineDataSet.drawHorizontalHighlightIndicatorEnabled = true
-    
-    configureGradientForLineDataSet(lineDataSet)
-    
-    return lineDataSet
   }
   
   private func configureGradientForLineDataSet(_ lineDataSet: LineChartDataSet) {

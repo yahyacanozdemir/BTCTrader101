@@ -18,7 +18,21 @@ extension Double {
   }
   
   var formattedString: String {
-    let formatted = String(self)
-    return formatted.replacingOccurrences(of: ".", with: ",")
+    let formatter = NumberFormatter()
+    formatter.numberStyle = .decimal
+    formatter.locale = Locale(identifier: "tr_TR") // Türkçe yerelleştirme
+    return formatter.string(from: NSNumber(value: self)) ?? "\(self)"
+  }
+}
+
+
+extension Int {
+  func formattedDateString(format: String = "dd MMM yyyy, HH:mm") -> String {
+    let timeInterval = TimeInterval(self)
+    let date = Date(timeIntervalSince1970: timeInterval)
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "tr_TR") // Türkçe format için
+    formatter.dateFormat = format
+    return formatter.string(from: date)
   }
 }

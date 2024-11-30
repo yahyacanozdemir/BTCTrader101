@@ -11,11 +11,14 @@ class CryptoDetailCoordinator: BaseCoordinator {
   
   func start(_ cryptoDetail: Pair) {
     
+    let now = Date().xMinuteAgoTimeStamp(1)
+    let yesterday = Date().xHourAgoTimeStamp(24)
+    
     let graphSericeParams = CryptoGraphParameters(
       symbol: cryptoDetail.pair ?? "",
-      resolution: 60, ///Parametrik yapılabilir
-      from: 1602925320,  ///Parametrik yapılabilir
-      to: 1603152000)  ///Parametrik yapılabilir
+      resolution: 1,
+      from: Int(yesterday),
+      to: Int(now))
       
     let useCase = CryptoDetailUseCase(
       repository: CryptoDetailRepository(service: CryptoGraphService()),
