@@ -23,7 +23,6 @@ Bu proje, kullanıcıların kripto para piyasasında anlık değişimleri takip 
 - **Anlık Fiyat Değişimi:** Kripto paraların fiyatları, anasayfada bulunan pull to refresh özelliği ile gerçek zamanlı olarak güncellenir ve kullanıcıya bildirilir.
 - **Kripto Grafik Sayfası:** Kullanıcılar herhangi bir kripto paraya tıkladığında o kripto paraya ait saatlik, günlük, haftalık ve aylık ayrıntılı grafiğe erişebilirler.
 
-###### Favorileri yeniden sıralama: 
 ![Favorileri Düzenleme Özelliği](https://github.com/user-attachments/assets/8237245f-7ff5-4034-bc88-064c8950de0e)
 
 ## Sayfa Detayları
