@@ -15,7 +15,7 @@ Bu proje, kullanıcıların kripto para piyasasında anlık değişimleri takip 
 ---
 
 ## Özellikler
-[App Özellikleri](https://github.com/user-attachments/assets/3013af64-dc77-4bd5-bfae-ed9f6453f01f)
+![App Özellikleri](https://github.com/user-attachments/assets/3013af64-dc77-4bd5-bfae-ed9f6453f01f)
 
 - **Kripto Para Takibi:** Kullanıcılar, anlık olarak güncellenen kripto para verilerini görebilir, ilgili kriptoları filtreleyebilir ve pull to refresh özelliği ile listeyi tekrar güncelleyebilir.
 - **Favori Kripto Para Ekleme:** Kullanıcılar, favori kripto paralarını seçebilir ve bu favorileri uygulamanın üst kısmında sürekli olarak takip edebilir.
@@ -24,7 +24,7 @@ Bu proje, kullanıcıların kripto para piyasasında anlık değişimleri takip 
 - **Kripto Grafik Sayfası:** Kullanıcılar herhangi bir kripto paraya tıkladığında o kripto paraya ait saatlik, günlük, haftalık ve aylık ayrıntılı grafiğe erişebilirler.
 
 ### -> Favorileri yeniden sıralama: 
-[Favorileri Düzenleme Özelliği](https://github.com/user-attachments/assets/8237245f-7ff5-4034-bc88-064c8950de0e)
+![Favorileri Düzenleme Özelliği](https://github.com/user-attachments/assets/8237245f-7ff5-4034-bc88-064c8950de0e)
 
 ## Sayfa Detayları
 
